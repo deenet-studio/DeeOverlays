@@ -1,15 +1,19 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import './widgets.css'
-import type { EditorState, OverlayId, OverlayItem, Position, Size } from '../types'
+import type { EditorState, OverlayDataEvent, OverlayId, OverlayItem, Position, Size } from '../types'
 
-type Props = { state: EditorState; onSelect: (id: OverlayId) => void; onMove: (id: OverlayId, position: Position) => void; onResize: (id: OverlayId, size: Size) => void; alertVisible: boolean }
+type Props = { state: EditorState; onSelect: (id: OverlayId) => void; onMove: (id: OverlayId, position: Position) => void; onResize: (id: OverlayId, size: Size) => void; alertVisible: boolean; liveEvents?: OverlayDataEvent[] }
 const chat = [['Алексей', 'Отличный момент 🔥'], ['Максим', 'Хорошая катка!'], ['Сергей', 'Какой сегодня рейтинг?'], ['Евгений', 'Красиво получилось 👍'], ['Ольга', 'Удачи на стриме!']]
 
-export function OverlayContent({ item, state, alertVisible }: { item: OverlayItem; state: EditorState; alertVisible: boolean }) {
+export function OverlayContent({ item, state, alertVisible, liveEvents = [] }: { item: OverlayItem; state: EditorState; alertVisible: boolean; liveEvents?: OverlayDataEvent[] }) {
   const style = { '--primary': state.primaryColor, '--secondary': state.secondaryColor, '--widget-text-scale': item.textSize / 100, opacity: item.opacity / 100 } as React.CSSProperties
   switch (item.id) {
     case 'camera': return <div className="camera-content" style={{ ...style, borderRadius: state.cameraRadius, borderWidth: state.cameraBorder, boxShadow: `0 0 ${state.cameraGlow}px ${state.primaryColor}66` }}><span>Камера</span><small>Временная заглушка</small></div>
-    case 'chat': return <div className="chat-content" style={style}>{chat.slice(0, Math.min(state.chatMessages, 5)).map(([name, text], i) => <div className="message" key={name}><b>{name}</b>{state.chatTime && <time>22:{15 + i}</time>}<span>{text}</span></div>)}</div>
+    case 'chat': {
+      const vkMessages = liveEvents.filter(event => event.type === 'chat-message' && event.sourceId === item.dataSourceId).slice(-state.chatMessages)
+      if (item.dataSourceId === 'vk-video') return <div className="chat-content" style={style}>{vkMessages.length ? vkMessages.map(event => <div className="message" key={String(event.payload.messageId)}><b>{String(event.payload.authorName ?? 'Зритель VK Видео')}</b>{state.chatTime && <time>{new Date(event.occurredAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}</time>}<span>{String(event.payload.text ?? '')}</span></div>) : <div className="message"><span>Ожидаем сообщений из VK Видео…</span></div>}</div>
+      return <div className="chat-content" style={style}>{chat.slice(0, Math.min(state.chatMessages, 5)).map(([name, text], i) => <div className="message" key={name}><b>{name}</b>{state.chatTime && <time>22:{15 + i}</time>}<span>{text}</span></div>)}</div>
+    }
     case 'goal': return <div className="card goal" style={style}><small>Цель стрима</small><b>Новый компьютер</b><div className="progress"><i style={{ width: '73%' }} /></div><span>73 000 ₽ из 100 000 ₽ <strong>73%</strong></span></div>
     case 'donation': return <div className="card" style={style}><small>Последний донат</small><b>Александр <em>500 ₽</em></b></div>
     case 'subscriber': return <div className="card" style={style}><small>Новый подписчик</small><b>Максим</b></div>
@@ -27,7 +31,7 @@ function Clock({ style, showTime, showDate }: { style: React.CSSProperties; show
   return <div className="clock" style={style}>{showTime && <b>{now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}</b>}{showDate && <small>{now.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</small>}</div>
 }
 
-export function Preview({ state, onSelect, onMove, onResize, alertVisible }: Props) {
+export function Preview({ state, onSelect, onMove, onResize, alertVisible, liveEvents }: Props) {
   const sceneRef = useRef<HTMLDivElement>(null); const stageRef = useRef<HTMLDivElement>(null); const drag = useRef<{ id: OverlayId; startX: number; startY: number; origin: Position; resize: boolean; originSize: Size } | null>(null)
   const [guides, setGuides] = useState({ x: false, y: false })
   const [displaySize, setDisplaySize] = useState({ width: 0, height: 0 })
@@ -57,6 +61,6 @@ export function Preview({ state, onSelect, onMove, onResize, alertVisible }: Pro
     <div className="scene-wrap" ref={stageRef}><div ref={sceneRef} className={`scene background-${state.background} scale-${state.interfaceScale}`} style={{ width: displaySize.width, height: displaySize.height }} onPointerMove={move} onPointerUp={() => { drag.current = null; setGuides({ x: false, y: false }) }}>
       {state.showSafeZone && <div className="safe-zone"><span>Безопасная игровая область</span></div>}{guides.x && <i className="guide vertical" />}{guides.y && <i className="guide horizontal" />}
       {Object.values(state.items).filter(item => item.enabled).map(item => <div key={item.id} className={`overlay-item ${state.selectedId === item.id ? 'active' : ''} ${item.size.width / item.size.height > 1.7 ? 'layout-wide' : item.size.width / item.size.height < .75 ? 'layout-tall' : ''} widget-${item.id}`} style={{ left: `${item.position.x}%`, top: `${item.position.y}%`, width: `${item.size.width}%`, height: `${item.size.height}%` }} onPointerDown={event => start(event, item)} onClick={() => onSelect(item.id)}>
-        <OverlayContent item={item} state={state} alertVisible={alertVisible} />{item.id !== 'branding' && <button className="resize-handle" type="button" aria-label="Изменить размер" onPointerDown={event => start(event, item, true)} />}
+        <OverlayContent item={item} state={state} alertVisible={alertVisible} liveEvents={liveEvents} />{item.id !== 'branding' && <button className="resize-handle" type="button" aria-label="Изменить размер" onPointerDown={event => start(event, item, true)} />}
       </div>)}</div></div></main>
 }

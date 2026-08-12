@@ -19,6 +19,10 @@ export type DataSourceConnection = {
   id: DataSourceId
   status: DataSourceStatus
   errorMessage?: string
+  infoMessage?: string
+  displayName?: string
+  channelId?: string
+  avatarUrl?: string
 }
 
 export type OverlayItem = {

@@ -3,14 +3,19 @@ import react from '@vitejs/plugin-react'
 import { WebSocketServer, WebSocket } from 'ws'
 
 function localOverlaySync() {
-  let latestMessage = ''
+  let latestConfiguration = ''
   const socketServer = new WebSocketServer({ noServer: true })
 
   socketServer.on('connection', socket => {
-    if (latestMessage) socket.send(latestMessage)
+    if (latestConfiguration) socket.send(latestConfiguration)
     socket.on('message', data => {
-      latestMessage = data.toString()
-      for (const client of socketServer.clients) if (client.readyState === WebSocket.OPEN) client.send(latestMessage)
+      const message = data.toString()
+      try {
+        const parsed = JSON.parse(message) as { type?: string }
+        // Новому Runtime нужна только актуальная конфигурация, а не старое событие чата.
+        if (parsed.type === 'configuration') latestConfiguration = message
+      } catch { return }
+      for (const client of socketServer.clients) if (client.readyState === WebSocket.OPEN) client.send(message)
     })
   })
 
@@ -34,5 +39,9 @@ export default defineConfig({
     // OBS и редактор должны всегда обращаться к одному предсказуемому адресу.
     // Если порт занят, Vite сообщает об этом вместо незаметного перехода на 5174.
     strictPort: true,
+    proxy: {
+      // Интеграционный сервис остаётся отдельным от Vite, но для браузера доступен через тот же origin.
+      '/integration': { target: 'http://127.0.0.1:8787', changeOrigin: true },
+    },
   },
 })

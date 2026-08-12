@@ -1,4 +1,4 @@
-import type { DataSourceId, DataSourceStatus, OverlayDataEventType, PlatformDataSourceId } from './types'
+import type { DataSourceId, DataSourceStatus, OverlayDataEventType, OverlayId, PlatformDataSourceId } from './types'
 
 export type DataSourceDefinition = {
   id: DataSourceId
@@ -7,9 +7,15 @@ export type DataSourceDefinition = {
   supportedEvents: OverlayDataEventType[]
 }
 
+export const widgetDataEvent: Partial<Record<OverlayId, OverlayDataEventType>> = {
+  chat: 'chat-message',
+  donation: 'donation',
+  subscriber: 'new-subscriber',
+}
+
 export const dataSourceDefinitions: DataSourceDefinition[] = [
   { id: 'demo', title: 'Демонстрационные данные', description: 'Тестовые сообщения и события без подключения платформы.', supportedEvents: ['chat-message', 'new-subscriber', 'paid-subscription', 'donation', 'viewer-count', 'alert'] },
-  { id: 'vk-video', title: 'VK Видео', description: 'Чат и события трансляции VK Видео.', supportedEvents: ['chat-message', 'new-subscriber', 'donation', 'viewer-count', 'alert'] },
+  { id: 'vk-video', title: 'VK Видео', description: 'Официальный чат и число зрителей VK Видео Live.', supportedEvents: ['chat-message', 'viewer-count'] },
   { id: 'youtube', title: 'YouTube', description: 'Чат и события трансляции YouTube.', supportedEvents: ['chat-message', 'new-subscriber', 'paid-subscription', 'donation', 'viewer-count', 'alert'] },
   { id: 'rutube', title: 'RuTube', description: 'Чат и доступные события RuTube.', supportedEvents: ['chat-message', 'new-subscriber', 'donation', 'viewer-count', 'alert'] },
   { id: 'twitch', title: 'Twitch', description: 'Чат и события трансляции Twitch.', supportedEvents: ['chat-message', 'new-subscriber', 'paid-subscription', 'donation', 'viewer-count', 'alert'] },

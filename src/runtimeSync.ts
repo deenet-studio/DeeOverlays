@@ -1,4 +1,4 @@
-import type { EditorState } from './types'
+import type { EditorState, OverlayDataEvent } from './types'
 
 export const editorStorageKey = 'deeoverlays-stage-one'
 export const runtimeChannelName = 'deeoverlays-runtime'
@@ -6,6 +6,7 @@ export const runtimeChannelName = 'deeoverlays-runtime'
 export type RuntimeMessage =
   | { type: 'configuration'; state: EditorState }
   | { type: 'test-alert' }
+  | { type: 'overlay-event'; event: OverlayDataEvent }
 
 export function createRuntimeChannel() {
   return typeof BroadcastChannel === 'undefined' ? null : new BroadcastChannel(runtimeChannelName)
