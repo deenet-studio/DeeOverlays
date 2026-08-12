@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createDefaultState } from '../data'
-import { editorStorageKey, createRuntimeChannel, type RuntimeMessage } from '../runtimeSync'
+import { editorStorageKey, createLocalSyncSocket, createRuntimeChannel, type RuntimeMessage } from '../runtimeSync'
 import type { EditorState } from '../types'
 import { OverlayContent } from './Preview'
 
@@ -24,9 +24,10 @@ export function OverlayRuntime() {
     }
     const onMessage = (event: MessageEvent<RuntimeMessage>) => receive(event.data)
     const onStorage = (event: StorageEvent) => { if (event.key === editorStorageKey) setState(readConfiguration()) }
+    const socket = createLocalSyncSocket(receive)
     channel?.addEventListener('message', onMessage)
     window.addEventListener('storage', onStorage)
-    return () => { document.documentElement.classList.remove('runtime-document'); channel?.removeEventListener('message', onMessage); channel?.close(); window.removeEventListener('storage', onStorage) }
+    return () => { document.documentElement.classList.remove('runtime-document'); channel?.removeEventListener('message', onMessage); channel?.close(); socket?.close(); window.removeEventListener('storage', onStorage) }
   }, [])
 
   return <main className={`runtime-scene scale-${state.interfaceScale}`} style={{ '--runtime-ratio': `${state.resolution.width} / ${state.resolution.height}` } as React.CSSProperties} aria-label="DeeOverlays Runtime">
