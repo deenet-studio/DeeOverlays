@@ -28,4 +28,11 @@ function localOverlaySync() {
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), localOverlaySync()],
+  server: {
+    host: '127.0.0.1',
+    port: 5173,
+    // OBS и редактор должны всегда обращаться к одному предсказуемому адресу.
+    // Если порт занят, Vite сообщает об этом вместо незаметного перехода на 5174.
+    strictPort: true,
+  },
 })
