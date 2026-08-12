@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     version="1.2"
+     baseProfile="tiny-ps"
+     viewBox="0 0 512 512">
+  <title>DeeNet Studio</title>
+  <desc>DeeNet Studio three-wave logo</desc>
+
+  <defs>
+    <linearGradient id="gradTop" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#13D8EA"/>
+      <stop offset="48%" stop-color="#0FA8FF"/>
+      <stop offset="100%" stop-color="#9A5BEE"/>
+    </linearGradient>
+
+    <linearGradient id="gradMid" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#12D8EA"/>
+      <stop offset="48%" stop-color="#10A9FF"/>
+      <stop offset="100%" stop-color="#B052F0"/>
+    </linearGradient>
+
+    <linearGradient id="gradBot" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#11D7EA"/>
+      <stop offset="48%" stop-color="#10A8FF"/>
+      <stop offset="100%" stop-color="#C04FF0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Фон -->
+  <rect x="0" y="0" width="512" height="512" fill="#000000"/>
+
+  <!-- Верхняя волна: внешняя тёмная окантовка -->
+  <path d="M69 158
+           C111 122 149 104 186 116
+           C225 128 243 164 276 191
+           C317 225 350 232 384 220
+           C409 211 427 197 443 180"
+        fill="none"
+        stroke="#082734"
+        stroke-width="36"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <!-- Верхняя волна: внутренний тёмный контур -->
+  <path d="M69 158
+           C111 122 149 104 186 116
+           C225 128 243 164 276 191
+           C317 225 350 232 384 220
+           C409 211 427 197 443 180"
+        fill="none"
+        stroke="#0B4064"
+        stroke-width="28"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <!-- Верхняя волна: основной градиент -->
+  <path d="M69 158
+           C111 122 149 104 186 116
+           C225 128 243 164 276 191
+           C317 225 350 232 384 220
+           C409 211 427 197 443 180"
+        fill="none"
+        stroke="url(#gradTop)"
+        stroke-width="20"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <!-- Средняя волна -->
+  <path d="M68 232
+           C109 198 150 184 186 194
+           C226 205 246 239 278 260
+           C316 286 351 290 384 279
+           C409 271 426 261 441 252"
+        fill="none"
+        stroke="#082734"
+        stroke-width="36"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <path d="M68 232
+           C109 198 150 184 186 194
+           C226 205 246 239 278 260
+           C316 286 351 290 384 279
+           C409 271 426 261 441 252"
+        fill="none"
+        stroke="#0B4064"
+        stroke-width="28"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <path d="M68 232
+           C109 198 150 184 186 194
+           C226 205 246 239 278 260
+           C316 286 351 290 384 279
+           C409 271 426 261 441 252"
+        fill="none"
+        stroke="url(#gradMid)"
+        stroke-width="20"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <!-- Нижняя волна -->
+  <path d="M66 306
+           C107 270 148 257 184 266
+           C225 276 246 309 278 329
+           C317 354 352 360 384 351
+           C408 345 425 337 439 328"
+        fill="none"
+        stroke="#082734"
+        stroke-width="36"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <path d="M66 306
+           C107 270 148 257 184 266
+           C225 276 246 309 278 329
+           C317 354 352 360 384 351
+           C408 345 425 337 439 328"
+        fill="none"
+        stroke="#0B4064"
+        stroke-width="28"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <path d="M66 306
+           C107 270 148 257 184 266
+           C225 276 246 309 278 329
+           C317 354 352 360 384 351
+           C408 345 425 337 439 328"
+        fill="none"
+        stroke="url(#gradBot)"
+        stroke-width="20"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <!-- Световые точки слева -->
+  <circle cx="69" cy="158" r="8" fill="#D9FFFF"/>
+  <circle cx="68" cy="232" r="8" fill="#D9FFFF"/>
+  <circle cx="66" cy="306" r="8" fill="#D9FFFF"/>
+</svg>

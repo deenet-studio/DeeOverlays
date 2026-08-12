@@ -1,0 +1,18 @@
+/* Внутренняя компоновка зависит от формы виджета: широкие блоки становятся строкой, высокие — колонкой. */
+.overlay-item,.runtime-item{container-type:inline-size;--widget-text-scale:1}
+.overlay-item .card,.runtime-item .card{display:flex;flex-direction:column;justify-content:center;gap:max(2px,2cqh);min-width:0;min-height:0;overflow:hidden}
+.overlay-item .card>* ,.runtime-item .card>*{min-width:0;overflow-wrap:anywhere}
+.overlay-item .card small,.runtime-item .card small{font-size:calc(clamp(6px,.65vw,11px) * var(--widget-text-scale))}
+.overlay-item .card b,.runtime-item .card b{font-size:calc(clamp(8px,.9vw,15px) * var(--widget-text-scale))}
+.overlay-item .card span,.runtime-item .card span{font-size:calc(clamp(6px,.6vw,10px) * var(--widget-text-scale))}
+.overlay-item .chat-content,.runtime-item .chat-content{font-size:calc(1em * var(--widget-text-scale));overflow:hidden}
+.overlay-item .message,.runtime-item .message{font-size:clamp(6px,11cqw,14px);line-height:1.25}
+.overlay-item .clock,.runtime-item .clock{overflow:hidden;min-width:0;line-height:1.15}
+.overlay-item .clock b,.runtime-item .clock b{font-size:calc(clamp(8px,18cqw,25px) * var(--widget-text-scale));white-space:nowrap}
+.overlay-item .clock small,.runtime-item .clock small{font-size:calc(clamp(6px,8cqw,10px) * var(--widget-text-scale));white-space:nowrap}
+.overlay-item .socials,.runtime-item .socials{flex-wrap:wrap;align-content:center;overflow:hidden}
+.overlay-item .ticker,.runtime-item .ticker{max-width:100%;overflow:hidden}
+.layout-wide .card{flex-direction:row;align-items:center;justify-content:space-between;gap:7px}
+.layout-wide .card small{white-space:nowrap}.layout-wide .card b{margin:0}.layout-wide .card .progress{flex:1;min-width:20px;margin:0}.layout-wide .card span{white-space:nowrap}
+.layout-tall .card{align-items:center;text-align:center}.layout-tall .card em{float:none;display:block}.layout-tall .goal span strong{display:block}.layout-tall .music .progress{width:100%}
+@container (max-width: 90px){.overlay-item .card,.runtime-item .card{padding:3px;gap:1px}.overlay-item .socials b,.runtime-item .socials b{font-size:6px}}

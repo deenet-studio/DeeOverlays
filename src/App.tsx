@@ -1,0 +1,23 @@
+import { useEffect, useMemo, useState } from 'react'
+import './App.css'
+import { createDefaultState } from './data'
+import { Header } from './components/Header'
+import { Sidebar } from './components/Sidebar'
+import { Preview } from './components/Preview'
+import { Settings } from './components/Settings'
+import type { EditorState, OverlayId, OverlayItem, Position, Size } from './types'
+import { createRuntimeChannel, editorStorageKey } from './runtimeSync'
+import { OverlayRuntime } from './components/OverlayRuntime'
+
+function loadState(): EditorState { try { const saved = localStorage.getItem(editorStorageKey); return saved ? { ...createDefaultState(), ...JSON.parse(saved) } : createDefaultState() } catch { return createDefaultState() } }
+function App() {
+  const [state, setState] = useState<EditorState>(loadState); const [alertVisible, setAlertVisible] = useState(false); const [confirmReset, setConfirmReset] = useState(false)
+  useEffect(() => { localStorage.setItem(editorStorageKey, JSON.stringify(state)); const channel = createRuntimeChannel(); channel?.postMessage({ type: 'configuration', state }); channel?.close() }, [state])
+  const selected = state.items[state.selectedId]; const items = useMemo(() => Object.values(state.items), [state.items])
+  const update = (patch: Partial<EditorState>) => setState(previous => ({ ...previous, ...patch }))
+  const updateItem = (id: OverlayId, patch: Partial<OverlayItem>) => setState(previous => ({ ...previous, items: { ...previous.items, [id]: { ...previous.items[id], ...patch } } }))
+  const testAlert = () => { setAlertVisible(false); requestAnimationFrame(() => setAlertVisible(true)); const channel = createRuntimeChannel(); channel?.postMessage({ type: 'test-alert' }); channel?.close(); window.setTimeout(() => setAlertVisible(false), 4200) }
+  return <div className="app-shell"><Header onPreview={() => document.querySelector('.scene-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'center' })} onReset={() => setConfirmReset(true)} /><div className="editor-grid"><Sidebar items={items} selectedId={state.selectedId} onSelect={selectedId => update({ selectedId })} onToggle={id => updateItem(id, { enabled: !state.items[id].enabled })} /><Preview state={state} onSelect={selectedId => update({ selectedId })} onMove={(id, position: Position) => updateItem(id, { position })} onResize={(id, size: Size) => updateItem(id, { size })} alertVisible={alertVisible} /><Settings state={state} item={selected} update={update} updateItem={patch => updateItem(selected.id, patch)} onTestAlert={testAlert} /></div>
+  {confirmReset && <div className="modal-backdrop" role="dialog" aria-modal="true"><div className="modal glass"><h2>Сбросить настройки?</h2><p>Вернуть стандартное расположение и оформление элементов?</p><div><button className="ghost-button" onClick={() => setConfirmReset(false)}>Отмена</button><button className="primary-button" onClick={() => { setState(createDefaultState()); localStorage.removeItem(editorStorageKey); setConfirmReset(false) }}>Сбросить</button></div></div></div>}</div>
+}
+export default function RootApp() { return window.location.pathname === '/overlay/demo' ? <OverlayRuntime /> : <App /> }

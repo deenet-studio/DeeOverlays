@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="waveGradient" x1="96" y1="128" x2="416" y2="320" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00EAFF"/>
+      <stop offset="55%" stop-color="#3F86FF"/>
+      <stop offset="100%" stop-color="#8B5CFF"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0" result="glowColor"/>
+      <feMerge>
+        <feMergeNode in="glowColor"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#glow)">
+    <path d="M96 176 C 150 120, 214 120, 262 176 S 374 232, 416 176"
+          stroke="url(#waveGradient)" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M96 256 C 150 200, 214 200, 262 256 S 374 312, 416 256"
+          stroke="url(#waveGradient)" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M96 336 C 150 280, 214 280, 262 336 S 374 392, 416 336"
+          stroke="url(#waveGradient)" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
