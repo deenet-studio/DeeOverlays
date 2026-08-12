@@ -2,18 +2,15 @@
 
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
-## Локальный запуск с VK Видео Live
+## Локальный запуск
 
-1. Зарегистрируйте приложение в [кабинете разработчика VK Видео Live](https://dev.live.vkvideo.ru/).
-2. Скопируйте `.env.example` в `.env` и заполните `VK_VIDEO_LIVE_CLIENT_ID` и `VK_VIDEO_LIVE_CLIENT_SECRET` значениями созданного приложения.
-3. В кабинете укажите точный callback URL: `http://127.0.0.1:8787/integration/vk-video/callback`. Если меняете его, укажите то же значение в `VK_VIDEO_LIVE_REDIRECT_URI`.
-4. Запустите одной командой:
+Запустите редактор и демонстрационный Overlay Runtime одной командой:
 
    ```bash
    npm run dev
    ```
 
-Редактор откроется на `http://127.0.0.1:5173`, а локальный integration service работает на `127.0.0.1:8787` и доступен редактору через тот же адрес. Реальные секреты не должны попадать в Git: `.env` уже исключён.
+Редактор откроется на `http://127.0.0.1:5173`. Все реальные источники данных требуют отдельного server stage с публичным HTTPS endpoint. До него используйте «Демонстрационные данные».
 
 Currently, two official plugins are available:
 

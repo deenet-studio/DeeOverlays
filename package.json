@@ -4,9 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently --kill-others-on-fail -n editor,integration -c cyan,magenta \"npm run dev:editor\" \"npm run dev:integration\"",
+    "dev": "vite",
     "dev:editor": "vite",
     "dev:integration": "tsx watch server/index.ts",
+    "dev:full": "concurrently --kill-others-on-fail -n editor,integration -c cyan,magenta \"npm run dev:editor\" \"npm run dev:integration\"",
     "server:check": "tsc -p server/tsconfig.json",
     "build": "tsc -b && npm run server:check && vite build",
     "lint": "oxlint",
