@@ -1,0 +1,28 @@
+import type { DataSourceId, DataSourceStatus, OverlayDataEventType, PlatformDataSourceId } from './types'
+
+export type DataSourceDefinition = {
+  id: DataSourceId
+  title: string
+  description: string
+  supportedEvents: OverlayDataEventType[]
+}
+
+export const dataSourceDefinitions: DataSourceDefinition[] = [
+  { id: 'demo', title: 'Демонстрационные данные', description: 'Тестовые сообщения и события без подключения платформы.', supportedEvents: ['chat-message', 'new-subscriber', 'paid-subscription', 'donation', 'viewer-count', 'alert'] },
+  { id: 'vk-video', title: 'VK Видео', description: 'Чат и события трансляции VK Видео.', supportedEvents: ['chat-message', 'new-subscriber', 'donation', 'viewer-count', 'alert'] },
+  { id: 'youtube', title: 'YouTube', description: 'Чат и события трансляции YouTube.', supportedEvents: ['chat-message', 'new-subscriber', 'paid-subscription', 'donation', 'viewer-count', 'alert'] },
+  { id: 'rutube', title: 'RuTube', description: 'Чат и доступные события RuTube.', supportedEvents: ['chat-message', 'new-subscriber', 'donation', 'viewer-count', 'alert'] },
+  { id: 'twitch', title: 'Twitch', description: 'Чат и события трансляции Twitch.', supportedEvents: ['chat-message', 'new-subscriber', 'paid-subscription', 'donation', 'viewer-count', 'alert'] },
+]
+
+export const sourceStatusLabel: Record<DataSourceStatus, string> = {
+  disconnected: 'Не подключено', connecting: 'Подключение', connected: 'Подключено', error: 'Ошибка',
+}
+
+export function getSourceDefinition(id: DataSourceId) {
+  return dataSourceDefinitions.find(source => source.id === id) ?? dataSourceDefinitions[0]
+}
+
+export function isPlatformSource(id: DataSourceId): id is PlatformDataSourceId {
+  return id !== 'demo'
+}

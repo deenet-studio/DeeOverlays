@@ -1,4 +1,4 @@
-import type { EditorState, OverlayId, OverlayItem, Resolution } from './types'
+import type { DataSourceConnection, DataSourceId, EditorState, OverlayId, OverlayItem, Resolution } from './types'
 
 export const resolutions: Resolution[] = [
   { label: '1920 × 1080', width: 1920, height: 1080 }, { label: '2560 × 1440', width: 2560, height: 1440 },
@@ -7,7 +7,15 @@ export const resolutions: Resolution[] = [
 ]
 
 const makeItem = (id: OverlayId, title: string, description: string, x: number, y: number, width: number, height: number): OverlayItem =>
-  ({ id, title, description, enabled: true, position: { x, y }, size: { width, height }, opacity: 78, textSize: 100 })
+  ({ id, title, description, enabled: true, position: { x, y }, size: { width, height }, opacity: 78, textSize: 100, dataSourceId: 'demo' })
+
+const defaultSources: Record<DataSourceId, DataSourceConnection> = {
+  demo: { id: 'demo', status: 'connected' },
+  'vk-video': { id: 'vk-video', status: 'disconnected' },
+  youtube: { id: 'youtube', status: 'disconnected' },
+  rutube: { id: 'rutube', status: 'disconnected' },
+  twitch: { id: 'twitch', status: 'disconnected' },
+}
 
 export const createDefaultState = (): EditorState => ({
   items: {
@@ -27,4 +35,15 @@ export const createDefaultState = (): EditorState => ({
   selectedId: 'camera', resolution: resolutions[0], customResolution: false, showSafeZone: false, background: 'game',
   primaryColor: '#00EAFF', secondaryColor: '#8B5CFF', interfaceScale: 'normal', chatMessages: 5, chatTime: true,
   clockTime: true, clockDate: true, cameraRadius: 18, cameraBorder: 2, cameraGlow: 45,
+  dataSources: defaultSources,
 })
+
+// Конфигурации ранних этапов не содержат источников. Нормализация сохраняет их настройки при обновлении редактора.
+export function hydrateEditorState(saved: unknown): EditorState {
+  const defaults = createDefaultState()
+  if (!saved || typeof saved !== 'object') return defaults
+  const stored = saved as Partial<EditorState>
+  const storedItems = (stored.items ?? {}) as Partial<Record<OverlayId, Partial<OverlayItem>>>
+  const items = Object.fromEntries(Object.entries(defaults.items).map(([id, item]) => [id, { ...item, ...storedItems[id as OverlayId] }])) as EditorState['items']
+  return { ...defaults, ...stored, items, dataSources: { ...defaults.dataSources, ...stored.dataSources } }
+}

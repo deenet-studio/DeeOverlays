@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { createDefaultState } from '../data'
+import { hydrateEditorState } from '../data'
 import { editorStorageKey, createLocalSyncSocket, createRuntimeChannel, type RuntimeMessage } from '../runtimeSync'
 import type { EditorState } from '../types'
 import { OverlayContent } from './Preview'
@@ -7,8 +7,8 @@ import { OverlayContent } from './Preview'
 function readConfiguration(): EditorState {
   try {
     const saved = localStorage.getItem(editorStorageKey)
-    return saved ? { ...createDefaultState(), ...JSON.parse(saved) } : createDefaultState()
-  } catch { return createDefaultState() }
+    return saved ? hydrateEditorState(JSON.parse(saved)) : hydrateEditorState(null)
+  } catch { return hydrateEditorState(null) }
 }
 
 export function OverlayRuntime() {
