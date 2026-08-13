@@ -10,7 +10,17 @@ This template provides a minimal setup to get React working in Vite with HMR and
    npm run dev
    ```
 
-Редактор откроется на `http://127.0.0.1:5173`. Все реальные источники данных требуют отдельного server stage с публичным HTTPS endpoint. До него используйте «Демонстрационные данные».
+Редактор откроется на `http://127.0.0.1:5173`.
+
+### VK Видео Live integration service
+
+Локальный integration server запускается отдельно:
+
+```bash
+npm run dev:integration
+```
+
+Он слушает только `127.0.0.1:8787`. Для OAuth заполните `.env` по образцу `.env.example` и добавьте в кабинете VK Видео Live redirect URI `https://dev-overlays.deenet.ru/integration/vk-video/callback`. Публичный HTTPS-домен должен перенаправлять этот единственный маршрут в локальный сервис через заранее настроенный туннель. Серверную инфраструктуру DeeOverlays этот проект не настраивает.
 
 Currently, two official plugins are available:
 

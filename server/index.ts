@@ -10,8 +10,10 @@ const port = 8787
 const frontendOrigin = process.env.DEEOVERLAYS_FRONTEND_ORIGIN ?? 'http://127.0.0.1:5173'
 const clientId = process.env.VK_VIDEO_LIVE_CLIENT_ID
 const clientSecret = process.env.VK_VIDEO_LIVE_CLIENT_SECRET
-const redirectUri = process.env.VK_VIDEO_LIVE_REDIRECT_URI ?? 'http://127.0.0.1:8787/integration/vk-video/callback'
+const redirectUri = process.env.VK_VIDEO_LIVE_REDIRECT_URI ?? 'https://dev-overlays.deenet.ru/integration/vk-video/callback'
 const clients = new Set<ServerResponse>()
+const pendingOAuthStates = new Map<string, number>()
+const oauthStateLifetimeMs = 10 * 60 * 1000
 
 function configured(): boolean { return Boolean(clientId && clientSecret) }
 
@@ -24,13 +26,20 @@ function json(response: ServerResponse, status: number, body: unknown): void {
   response.end(JSON.stringify(body))
 }
 
-function redirect(response: ServerResponse, location: string, cookie?: string): void {
-  response.writeHead(302, { Location: location, ...(cookie ? { 'Set-Cookie': cookie } : {}) })
+function redirect(response: ServerResponse, location: string): void {
+  response.writeHead(302, { Location: location })
   response.end()
 }
 
-function cookie(request: IncomingMessage, name: string): string | undefined {
-  return request.headers.cookie?.split(';').map(value => value.trim()).find(value => value.startsWith(`${name}=`))?.slice(name.length + 1)
+function isPendingOAuthState(state: string): boolean {
+  const expiresAt = pendingOAuthStates.get(state)
+  pendingOAuthStates.delete(state)
+  return typeof expiresAt === 'number' && expiresAt > Date.now()
+}
+
+function removeExpiredOAuthStates(): void {
+  const now = Date.now()
+  for (const [state, expiresAt] of pendingOAuthStates) if (expiresAt <= now) pendingOAuthStates.delete(state)
 }
 
 function publish(event: string, body: unknown): void {
@@ -46,7 +55,7 @@ function connectionStatus(): VkVideoConnection {
   return { id: 'vk-video', status: 'error', errorMessage: 'Заполните параметры приложения VK Видео в файле .env.' }
 }
 
-const server = createServer(async (request, response) => {
+const server = createServer(async (request: IncomingMessage, response: ServerResponse) => {
   const url = new URL(request.url ?? '/', `http://${request.headers.host ?? '127.0.0.1:8787'}`)
   if (url.pathname === '/health') return json(response, 200, { ok: true })
   if (url.pathname === '/integration/vk-video/status' && request.method === 'GET') return json(response, 200, { connection: connectionStatus() })
@@ -60,21 +69,25 @@ const server = createServer(async (request, response) => {
   if (url.pathname === '/integration/vk-video/connect' && request.method === 'GET') {
     if (!source || !clientId) return redirect(response, `${frontendOrigin}/?vkVideo=configuration-error`)
     const state = randomBytes(24).toString('hex')
+    removeExpiredOAuthStates()
+    // Callback приходит через HTTPS-домен, а авторизация запускается с localhost.
+    // Одноразовый state хранится на сервере, иначе cookie localhost не дошла бы до callback.
+    pendingOAuthStates.set(state, Date.now() + oauthStateLifetimeMs)
     const authorizationUrl = new URL('https://auth.live.vkvideo.ru/app/oauth2/authorize')
     authorizationUrl.searchParams.set('client_id', clientId)
     authorizationUrl.searchParams.set('redirect_uri', redirectUri)
     authorizationUrl.searchParams.set('response_type', 'code')
     authorizationUrl.searchParams.set('state', state)
     console.info('[VK Видео] Подключение начато.')
-    return redirect(response, authorizationUrl.toString(), `deeoverlays_vk_oauth_state=${state}; HttpOnly; SameSite=Lax; Path=/; Max-Age=600`)
+    return redirect(response, authorizationUrl.toString())
   }
   if (url.pathname === '/integration/vk-video/callback' && request.method === 'GET') {
     const code = url.searchParams.get('code')
     const state = url.searchParams.get('state')
-    if (!source || !code || !state || state !== cookie(request, 'deeoverlays_vk_oauth_state')) return redirect(response, `${frontendOrigin}/?vkVideo=error`)
+    if (!source || !code || !state || !isPendingOAuthState(state)) return redirect(response, `${frontendOrigin}/?vkVideo=error`)
     await source.connect(code)
     const status = source.getStatus().status
-    return redirect(response, `${frontendOrigin}/?vkVideo=${status === 'connected' ? 'connected' : 'error'}`, 'deeoverlays_vk_oauth_state=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0')
+    return redirect(response, `${frontendOrigin}/?vkVideo=${status === 'connected' ? 'connected' : 'error'}`)
   }
   if (url.pathname === '/integration/vk-video/disconnect' && request.method === 'POST') {
     await source?.disconnect()

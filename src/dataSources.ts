@@ -16,7 +16,7 @@ export const widgetDataEvent: Partial<Record<OverlayId, OverlayDataEventType>> =
 
 export const dataSourceDefinitions: DataSourceDefinition[] = [
   { id: 'demo', title: 'Демонстрационные данные', description: 'Тестовые сообщения и события без подключения платформы.', supportedEvents: ['chat-message', 'new-subscriber', 'paid-subscription', 'donation', 'viewer-count', 'alert'], availability: 'ready' },
-  { id: 'vk-video', title: 'VK Видео', description: 'Официальный чат и число зрителей VK Видео Live.', supportedEvents: ['chat-message', 'viewer-count'], availability: 'requires-backend' },
+  { id: 'vk-video', title: 'VK Видео', description: 'Официальный чат и число зрителей VK Видео Live.', supportedEvents: ['chat-message', 'viewer-count'], availability: 'ready' },
   { id: 'youtube', title: 'YouTube', description: 'Чат и события трансляции YouTube.', supportedEvents: ['chat-message', 'new-subscriber', 'paid-subscription', 'donation', 'viewer-count', 'alert'], availability: 'requires-backend' },
   { id: 'rutube', title: 'RuTube', description: 'Чат и доступные события RuTube.', supportedEvents: ['chat-message', 'new-subscriber', 'donation', 'viewer-count', 'alert'], availability: 'requires-backend' },
   { id: 'twitch', title: 'Twitch', description: 'Чат и события трансляции Twitch.', supportedEvents: ['chat-message', 'new-subscriber', 'paid-subscription', 'donation', 'viewer-count', 'alert'], availability: 'requires-backend' },
