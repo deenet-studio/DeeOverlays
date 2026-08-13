@@ -5,6 +5,7 @@ import type { VkVideoConnection, VkVideoEventListener, VkVideoProfile, VkVideoSt
 const sourceId = 'vk-video' as const
 const chatPollIntervalMs = 4_000
 const viewerPollIntervalMs = 15_000
+type OAuthStage = 'token-exchange' | 'profile-request' | 'channel-detection'
 
 function optionalString(value: unknown): string | undefined { return typeof value === 'string' && value.length > 0 ? value : undefined }
 function optionalNumber(value: unknown): string | undefined { return typeof value === 'number' || typeof value === 'string' ? String(value) : undefined }
@@ -25,10 +26,13 @@ export class VkVideoDataSource {
   async connect(code: string): Promise<void> {
     this.stopPolling()
     this.setStatus({ id: sourceId, status: 'connecting' })
+    let stage: OAuthStage = 'token-exchange'
     try {
       this.tokens = await this.api.exchangeAuthorizationCode(code, this.redirectUri)
+      stage = 'profile-request'
       this.profile = this.extractProfile(await this.withToken(token => this.api.getCurrentUser(token)))
-      if (!this.profile.channelUrl) throw new VkVideoApiError('VK Видео не вернул доступный канал для подключённого пользователя.')
+      stage = 'channel-detection'
+      if (!this.profile.channelUrl) throw new VkVideoApiError('VK Видео не вернул доступный канал для подключённого пользователя.', { endpoint: 'https://api.live.vkvideo.ru/v1/current_user' })
       this.setStatus({ id: sourceId, status: 'connected', displayName: this.profile.displayName, avatarUrl: this.profile.avatarUrl, channelId: this.profile.channelId, infoMessage: 'Проверяем доступность трансляции и чата.' })
       this.startPolling()
       await this.pollViewerCount()
@@ -39,7 +43,7 @@ export class VkVideoDataSource {
       this.tokens = undefined
       this.profile = undefined
       this.setStatus({ id: sourceId, status: 'error', errorMessage: this.userMessage(error) })
-      console.error('[VK Видео] Не удалось завершить авторизацию.')
+      this.logOAuthFailure(stage, error)
     }
   }
 
@@ -67,7 +71,7 @@ export class VkVideoDataSource {
   }
 
   private async withToken<T>(action: (accessToken: string) => Promise<T>): Promise<T> {
-    if (!this.tokens) throw new VkVideoApiError('Авторизация VK Видео отсутствует.')
+    if (!this.tokens) throw new VkVideoApiError('Авторизация VK Видео отсутствует.', { endpoint: 'https://api.live.vkvideo.ru/oauth/server/token' })
     if (this.tokens.expiresAt - Date.now() < 60_000) this.tokens = await this.api.refresh(this.tokens.refreshToken, this.redirectUri)
     try { return await action(this.tokens.accessToken) }
     catch (error) {
@@ -131,6 +135,26 @@ export class VkVideoDataSource {
     if (error instanceof VkVideoApiError && error.status === 403) return 'VK Видео не предоставил необходимые права доступа.'
     if (error instanceof TypeError) return 'Не удалось связаться с VK Видео. Проверьте подключение к интернету.'
     return 'VK Видео временно недоступно. Повторите попытку позже.'
+  }
+
+  private logOAuthFailure(stage: OAuthStage, error: unknown): void {
+    if (error instanceof VkVideoApiError) {
+      console.error('[VK Видео] OAuth диагностика.', {
+        stage,
+        endpoint: error.endpoint,
+        httpStatus: error.status ?? null,
+        apiError: error.apiError ?? null,
+        errorDescription: error.apiDescription ?? null,
+      })
+      return
+    }
+    console.error('[VK Видео] OAuth диагностика.', {
+      stage,
+      endpoint: stage === 'token-exchange' ? 'https://api.live.vkvideo.ru/oauth/server/token' : 'https://api.live.vkvideo.ru/v1/current_user',
+      httpStatus: null,
+      apiError: null,
+      errorDescription: error instanceof TypeError ? 'network_error' : 'unexpected_error',
+    })
   }
 
   private setStatus(connection: VkVideoConnection): void { this.connection = connection; this.onStatus(this.getStatus()) }

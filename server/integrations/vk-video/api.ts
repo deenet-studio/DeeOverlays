@@ -8,16 +8,32 @@ type JsonRecord = Record<string, unknown>
 
 export class VkVideoApiError extends Error {
   readonly status?: number
-  constructor(message: string, status?: number) { super(message); this.status = status }
+  readonly endpoint: string
+  readonly apiError?: string
+  readonly apiDescription?: string
+  constructor(message: string, details: { endpoint: string; status?: number; apiError?: string; apiDescription?: string }) {
+    super(message)
+    this.status = details.status
+    this.endpoint = details.endpoint
+    this.apiError = details.apiError
+    this.apiDescription = details.apiDescription
+  }
 }
 
 function isRecord(value: unknown): value is JsonRecord { return typeof value === 'object' && value !== null }
 
-async function readJson(response: Response): Promise<unknown> {
+function readApiText(body: JsonRecord, key: 'error' | 'error_description' | 'message'): string | undefined {
+  const value = body[key]
+  return typeof value === 'string' && value.length > 0 ? value : undefined
+}
+
+async function readJson(response: Response, endpoint: string): Promise<unknown> {
   const body: unknown = await response.json().catch(() => ({}))
   if (!response.ok) {
-    const description = isRecord(body) && typeof body.error_description === 'string' ? body.error_description : 'VK API вернул ошибку.'
-    throw new VkVideoApiError(description, response.status)
+    const record = isRecord(body) ? body : {}
+    const apiError = readApiText(record, 'error')
+    const description = readApiText(record, 'error_description') ?? readApiText(record, 'message')
+    throw new VkVideoApiError(description ?? apiError ?? 'VK API вернул ошибку.', { endpoint, status: response.status, apiError, apiDescription: description })
   }
   return body
 }
@@ -37,8 +53,8 @@ export class VkVideoApi {
 
   private async exchangeToken(body: URLSearchParams): Promise<VkVideoTokens> {
     const response = await fetch(oauthTokenUrl, { method: 'POST', headers: { Authorization: this.basicAuthorization(), 'Content-Type': 'application/x-www-form-urlencoded' }, body })
-    const json = await readJson(response)
-    if (!isRecord(json) || typeof json.access_token !== 'string' || typeof json.refresh_token !== 'string' || typeof json.expires_in !== 'number') throw new VkVideoApiError('VK API вернул неполный ответ авторизации.')
+    const json = await readJson(response, oauthTokenUrl)
+    if (!isRecord(json) || typeof json.access_token !== 'string' || typeof json.refresh_token !== 'string' || typeof json.expires_in !== 'number') throw new VkVideoApiError('VK API вернул неполный ответ авторизации.', { endpoint: oauthTokenUrl })
     return { accessToken: json.access_token, refreshToken: json.refresh_token, expiresAt: Date.now() + json.expires_in * 1000 }
   }
 
@@ -64,7 +80,7 @@ export class VkVideoApi {
 
   private async get(path: string, accessToken: string): Promise<unknown> {
     const response = await fetch(`${apiBaseUrl}${path}`, { headers: { Authorization: `Bearer ${accessToken}` } })
-    return readJson(response)
+    return readJson(response, `${apiBaseUrl}${path.split('?')[0]}`)
   }
 }
 

@@ -84,7 +84,16 @@ const server = createServer(async (request: IncomingMessage, response: ServerRes
   if (url.pathname === '/integration/vk-video/callback' && request.method === 'GET') {
     const code = url.searchParams.get('code')
     const state = url.searchParams.get('state')
-    if (!source || !code || !state || !isPendingOAuthState(state)) return redirect(response, `${frontendOrigin}/?vkVideo=error`)
+    if (!source || !code || !state || !isPendingOAuthState(state)) {
+      console.warn('[VK Видео] OAuth диагностика.', {
+        stage: 'callback',
+        endpoint: '/integration/vk-video/callback',
+        httpStatus: null,
+        apiError: 'invalid_callback',
+        errorDescription: 'missing_code_or_invalid_state',
+      })
+      return redirect(response, `${frontendOrigin}/?vkVideo=error`)
+    }
     await source.connect(code)
     const status = source.getStatus().status
     return redirect(response, `${frontendOrigin}/?vkVideo=${status === 'connected' ? 'connected' : 'error'}`)
