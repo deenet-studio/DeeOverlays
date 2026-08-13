@@ -1,8 +1,10 @@
 import type { VkVideoChatMessage, VkVideoTokens } from './types.ts'
 
-const apiBaseUrl = 'https://api.live.vkvideo.ru'
-const oauthTokenUrl = `${apiBaseUrl}/oauth/server/token`
-const oauthRevokeUrl = `${apiBaseUrl}/oauth/server/revoke`
+// OAuth и методы DevAPI размещены на разных официальных хостах VK Видео Live.
+const devApiBaseUrl = 'https://apidev.live.vkvideo.ru'
+const oauthBaseUrl = 'https://api.live.vkvideo.ru'
+const oauthTokenUrl = `${oauthBaseUrl}/oauth/server/token`
+const oauthRevokeUrl = `${oauthBaseUrl}/oauth/server/revoke`
 
 type JsonRecord = Record<string, unknown>
 
@@ -79,8 +81,8 @@ export class VkVideoApi {
   }
 
   private async get(path: string, accessToken: string): Promise<unknown> {
-    const response = await fetch(`${apiBaseUrl}${path}`, { headers: { Authorization: `Bearer ${accessToken}` } })
-    return readJson(response, `${apiBaseUrl}${path.split('?')[0]}`)
+    const response = await fetch(`${devApiBaseUrl}${path}`, { headers: { Authorization: `Bearer ${accessToken}` } })
+    return readJson(response, `${devApiBaseUrl}${path.split('?')[0]}`)
   }
 }
 

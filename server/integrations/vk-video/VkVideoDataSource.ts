@@ -32,7 +32,7 @@ export class VkVideoDataSource {
       stage = 'profile-request'
       this.profile = this.extractProfile(await this.withToken(token => this.api.getCurrentUser(token)))
       stage = 'channel-detection'
-      if (!this.profile.channelUrl) throw new VkVideoApiError('VK Видео не вернул доступный канал для подключённого пользователя.', { endpoint: 'https://api.live.vkvideo.ru/v1/current_user' })
+      if (!this.profile.channelUrl) throw new VkVideoApiError('VK Видео не вернул доступный канал для подключённого пользователя.', { endpoint: 'https://apidev.live.vkvideo.ru/v1/current_user' })
       this.setStatus({ id: sourceId, status: 'connected', displayName: this.profile.displayName, avatarUrl: this.profile.avatarUrl, channelId: this.profile.channelId, infoMessage: 'Проверяем доступность трансляции и чата.' })
       this.startPolling()
       await this.pollViewerCount()
@@ -150,7 +150,7 @@ export class VkVideoDataSource {
     }
     console.error('[VK Видео] OAuth диагностика.', {
       stage,
-      endpoint: stage === 'token-exchange' ? 'https://api.live.vkvideo.ru/oauth/server/token' : 'https://api.live.vkvideo.ru/v1/current_user',
+      endpoint: stage === 'token-exchange' ? 'https://api.live.vkvideo.ru/oauth/server/token' : 'https://apidev.live.vkvideo.ru/v1/current_user',
       httpStatus: null,
       apiError: null,
       errorDescription: error instanceof TypeError ? 'network_error' : 'unexpected_error',
