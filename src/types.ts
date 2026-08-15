@@ -1,4 +1,6 @@
-export type OverlayId = 'camera' | 'chat' | 'goal' | 'donation' | 'subscriber' | 'follower' | 'alert' | 'music' | 'socials' | 'ticker' | 'clock' | 'branding'
+export type OverlayId = 'camera' | 'chat' | 'goal' | 'donation' | 'subscriber' | 'follower' | 'alert' | 'music' | 'socials' | 'ticker' | 'clock'
+  | 'cs2-match' | 'cs2-radar' | 'cs2-teams' | 'cs2-player'
+  | 'tarkov-raid' | 'tarkov-condition' | 'tarkov-vitals' | 'tarkov-weapon' | 'tarkov-loot'
 
 export type Position = { x: number; y: number }
 export type Size = { width: number; height: number }

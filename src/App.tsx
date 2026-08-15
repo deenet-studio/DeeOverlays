@@ -10,6 +10,7 @@ import type { DataSourceConnection, DataSourceId, EditorState, OverlayDataEvent,
 import { createLocalSyncSocket, createRuntimeChannel, editorStorageKey, type RuntimeMessage } from './runtimeSync'
 import { OverlayRuntime } from './components/OverlayRuntime'
 import { disconnectVkVideo, getVkVideoStatus, subscribeToVkVideoEvents } from './vkVideoIntegration'
+import { isOverlayItemAvailable } from './themes'
 
 function loadState(): EditorState { try { const saved = localStorage.getItem(editorStorageKey); return saved ? hydrateEditorState(JSON.parse(saved)) : hydrateEditorState(null) } catch { return hydrateEditorState(null) } }
 function App() {
@@ -19,8 +20,8 @@ function App() {
   useEffect(() => { const socket = createLocalSyncSocket(() => {}); setSyncSocket(socket); socket?.addEventListener('open', () => setSyncReady(true)); socket?.addEventListener('close', () => setSyncReady(false)); return () => socket?.close() }, [])
   const publish = useCallback((message: RuntimeMessage) => { const channel = createRuntimeChannel(); channel?.postMessage(message); channel?.close(); if (syncSocket?.readyState === WebSocket.OPEN) syncSocket.send(JSON.stringify(message)) }, [syncSocket])
   useEffect(() => { localStorage.setItem(editorStorageKey, JSON.stringify(state)); publish({ type: 'configuration', state }) }, [state, syncReady, publish])
-  const selected = state.items[state.selectedId]; const items = useMemo(() => Object.values(state.items), [state.items])
-  const update = (patch: Partial<EditorState>) => setState(previous => ({ ...previous, ...patch }))
+  const selected = state.items[state.selectedId]; const items = useMemo(() => Object.values(state.items).filter(item => isOverlayItemAvailable(item.id, state.themeId)), [state.items, state.themeId])
+  const update = (patch: Partial<EditorState>) => setState(previous => { const themeId = patch.themeId ?? previous.themeId; const requestedSelectedId = patch.selectedId ?? previous.selectedId; const selectedId = isOverlayItemAvailable(requestedSelectedId, themeId) ? requestedSelectedId : 'camera'; return { ...previous, ...patch, selectedId } })
   const updateItem = (id: OverlayId, patch: Partial<OverlayItem>) => setState(previous => ({ ...previous, items: { ...previous.items, [id]: { ...previous.items[id], ...patch } } }))
   const updateVkConnection = useCallback((connection: DataSourceConnection) => setState(previous => ({ ...previous, dataSources: { ...previous.dataSources, 'vk-video': connection } })), [])
   useEffect(() => {

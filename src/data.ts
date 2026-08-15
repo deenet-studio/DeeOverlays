@@ -30,7 +30,15 @@ export const createDefaultState = (): EditorState => ({
     socials: makeItem('socials', 'Социальные сети', 'Ссылки на ваши площадки.', 30, 76, 40, 7),
     ticker: makeItem('ticker', 'Бегущая строка', 'Важная информация для зрителей.', 21, 96, 58, 4),
     clock: makeItem('clock', 'Часы', 'Локальное время в браузере.', 82, 88, 15, 7),
-    branding: makeItem('branding', 'Powered by DeeNet Studio', 'Небольшая фирменная подпись.', 72, 68, 25, 5),
+    'cs2-match': makeItem('cs2-match', 'CS2 · Счёт матча', 'Счёт, таймер, раунд и живые игроки.', 27, 3, 46, 11),
+    'cs2-radar': makeItem('cs2-radar', 'CS2 · Радар', 'Тактическая мини-карта матча.', 2, 16, 18, 27),
+    'cs2-teams': makeItem('cs2-teams', 'CS2 · Составы команд', 'Игроки CT и T, здоровье, деньги и оружие.', 2, 46, 23, 40),
+    'cs2-player': makeItem('cs2-player', 'CS2 · Панель игрока', 'Статистика, деньги, оружие и боезапас.', 31, 82, 38, 14),
+    'tarkov-raid': makeItem('tarkov-raid', 'Tarkov · Рейд', 'Таймер рейда и точка выхода.', 67, 3, 30, 10),
+    'tarkov-condition': makeItem('tarkov-condition', 'Tarkov · Состояние', 'Здоровье по частям тела.', 2, 39, 20, 31),
+    'tarkov-vitals': makeItem('tarkov-vitals', 'Tarkov · Показатели', 'Энергия, вода и выносливость.', 2, 73, 20, 10),
+    'tarkov-weapon': makeItem('tarkov-weapon', 'Tarkov · Оружие', 'Оружие, боеприпасы и режим огня.', 68, 85, 29, 10),
+    'tarkov-loot': makeItem('tarkov-loot', 'Tarkov · Добыча', 'Стоимость добычи и ценные предметы.', 76, 49, 21, 32),
   },
   selectedId: 'camera', resolution: resolutions[0], customResolution: false, showSafeZone: false, background: 'game',
   primaryColor: '#00EAFF', secondaryColor: '#8B5CFF', interfaceScale: 'normal', chatMessages: 5, chatTime: true,
@@ -46,5 +54,6 @@ export function hydrateEditorState(saved: unknown): EditorState {
   const stored = saved as Partial<EditorState>
   const storedItems = (stored.items ?? {}) as Partial<Record<OverlayId, Partial<OverlayItem>>>
   const items = Object.fromEntries(Object.entries(defaults.items).map(([id, item]) => [id, { ...item, ...storedItems[id as OverlayId] }])) as EditorState['items']
-  return { ...defaults, ...stored, items, gameEffects: { ...defaults.gameEffects, ...stored.gameEffects }, dataSources: { ...defaults.dataSources, ...stored.dataSources } }
+  const selectedId = stored.selectedId && Object.prototype.hasOwnProperty.call(items, stored.selectedId) ? stored.selectedId : defaults.selectedId
+  return { ...defaults, ...stored, selectedId, items, gameEffects: { ...defaults.gameEffects, ...stored.gameEffects }, dataSources: { ...defaults.dataSources, ...stored.dataSources } }
 }

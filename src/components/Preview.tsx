@@ -1,6 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import './widgets.css'
 import type { EditorState, OverlayDataEvent, OverlayId, OverlayItem, Position, Size } from '../types'
+import { isOverlayItemAvailable } from '../themes'
+import { GameOverlayContent } from './GameWidgets'
 
 type Props = { state: EditorState; onSelect: (id: OverlayId) => void; onMove: (id: OverlayId, position: Position) => void; onResize: (id: OverlayId, size: Size) => void; alertVisible: boolean; liveEvents?: OverlayDataEvent[] }
 const chat = [['Алексей', 'Отличный момент 🔥'], ['Максим', 'Хорошая катка!'], ['Сергей', 'Какой сегодня рейтинг?'], ['Евгений', 'Красиво получилось 👍'], ['Ольга', 'Удачи на стриме!']]
@@ -23,13 +25,12 @@ export function OverlayContent({ item, state, alertVisible, liveEvents = [] }: {
     case 'socials': return <div className="socials" style={style}><b>VK</b><b>Telegram</b><b>YouTube</b><b>RuTube</b><b>DeeNet.ru</b></div>
     case 'ticker': return <div className="ticker" style={style}><span>Добро пожаловать на трансляцию • Подписывайтесь на канал • Все ссылки находятся в описании</span></div>
     case 'clock': return <Clock style={style} showTime={state.clockTime} showDate={state.clockDate} />
-    case 'branding': return <div className="branding" style={style}><img src="/assets/brand/deenet-studio-logo.svg" alt="" style={{ width: '1.8em', height: '1.8em', marginRight: '.42em', borderRadius: 3 }} />Powered by <b>DeeNet Studio</b></div>
+    case 'cs2-match': case 'cs2-radar': case 'cs2-teams': case 'cs2-player': case 'tarkov-raid': case 'tarkov-condition': case 'tarkov-vitals': case 'tarkov-weapon': case 'tarkov-loot': return <GameOverlayContent id={item.id} />
   }
 }
 
 // Оболочка отделена от содержимого: тема может менять силуэт без влияния на данные виджета и его размеры.
 export function WidgetShell({ item, children }: { item: OverlayItem; children: React.ReactNode }) {
-  if (item.id === 'branding') return children
   return <div className={`widget-shell widget-shell-${item.id}`}>
     <span className="widget-frame-base" aria-hidden="true" />
     <span className="widget-frame-top" aria-hidden="true" />
@@ -37,6 +38,10 @@ export function WidgetShell({ item, children }: { item: OverlayItem; children: R
     <span className="widget-frame-mark" aria-hidden="true" />
     <div className="widget-shell-content">{children}</div>
   </div>
+}
+
+export function SystemBranding() {
+  return <div className="system-branding" aria-label="Powered by DeeNet Studio"><img src="/assets/brand/deenet-studio-logo.svg" alt="" />Powered by <b>DeeNet Studio</b></div>
 }
 
 // Эффект расположен над игровым фоном, но под карточками: зритель видит состояние, а информация остаётся читаемой.
@@ -84,7 +89,7 @@ export function Preview({ state, onSelect, onMove, onResize, alertVisible, liveE
   return <main className="preview-area"><div className="preview-toolbar"><div><p>Рабочая область</p><h2>Предпросмотр трансляции</h2></div><span>{state.resolution.width} × {state.resolution.height} · {state.resolution.width / state.resolution.height > 1.7 ? '16:9' : '4:3'}</span></div>
     <div className="scene-wrap" ref={stageRef}><div ref={sceneRef} className={`scene background-${state.background} scale-${state.interfaceScale} theme-${state.themeId}`} style={sceneStyle} onPointerMove={move} onPointerUp={() => { drag.current = null; setGuides({ x: false, y: false }) }}>
       <GameStatusEffect state={state} />{state.showSafeZone && <div className="safe-zone"><span>Безопасная игровая область</span></div>}{guides.x && <i className="guide vertical" />}{guides.y && <i className="guide horizontal" />}
-      {Object.values(state.items).filter(item => item.enabled).map(item => <div key={item.id} className={`overlay-item ${state.selectedId === item.id ? 'active' : ''} ${item.size.width / item.size.height > 1.7 ? 'layout-wide' : item.size.width / item.size.height < .75 ? 'layout-tall' : ''} widget-${item.id}`} style={{ left: `${item.position.x}%`, top: `${item.position.y}%`, width: `${item.size.width}%`, height: `${item.size.height}%` }} onPointerDown={event => start(event, item)} onClick={() => onSelect(item.id)}>
-        <WidgetShell item={item}><OverlayContent item={item} state={state} alertVisible={alertVisible} liveEvents={liveEvents} /></WidgetShell>{item.id !== 'branding' && <button className="resize-handle" type="button" aria-label="Изменить размер" onPointerDown={event => start(event, item, true)} />}
-      </div>)}</div></div></main>
+      {Object.values(state.items).filter(item => item.enabled && isOverlayItemAvailable(item.id, state.themeId)).map(item => <div key={item.id} className={`overlay-item ${state.selectedId === item.id ? 'active' : ''} ${item.size.width / item.size.height > 1.7 ? 'layout-wide' : item.size.width / item.size.height < .75 ? 'layout-tall' : ''} widget-${item.id}`} style={{ left: `${item.position.x}%`, top: `${item.position.y}%`, width: `${item.size.width}%`, height: `${item.size.height}%` }} onPointerDown={event => start(event, item)} onClick={() => onSelect(item.id)}>
+        <WidgetShell item={item}><OverlayContent item={item} state={state} alertVisible={alertVisible} liveEvents={liveEvents} /></WidgetShell><button className="resize-handle" type="button" aria-label="Изменить размер" onPointerDown={event => start(event, item, true)} />
+      </div>)}<SystemBranding /></div></div></main>
 }

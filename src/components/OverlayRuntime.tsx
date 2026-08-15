@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { hydrateEditorState } from '../data'
 import { editorStorageKey, createLocalSyncSocket, createRuntimeChannel, type RuntimeMessage } from '../runtimeSync'
 import type { EditorState, OverlayDataEvent } from '../types'
-import { GameStatusEffect, OverlayContent, WidgetShell } from './Preview'
+import { GameStatusEffect, OverlayContent, SystemBranding, WidgetShell } from './Preview'
+import { isOverlayItemAvailable } from '../themes'
 
 function readConfiguration(): EditorState {
   try {
@@ -33,6 +34,6 @@ export function OverlayRuntime() {
   }, [])
 
   return <main className={`runtime-scene scale-${state.interfaceScale} theme-${state.themeId}`} style={{ '--runtime-ratio': `${state.resolution.width} / ${state.resolution.height}`, '--theme-primary': state.primaryColor, '--theme-secondary': state.secondaryColor } as React.CSSProperties} aria-label="DeeOverlays Runtime">
-    <GameStatusEffect state={state} />{Object.values(state.items).filter(item => item.enabled).map(item => <div key={item.id} className={`runtime-item overlay-item ${item.size.width / item.size.height > 1.7 ? 'layout-wide' : item.size.width / item.size.height < .75 ? 'layout-tall' : ''}`} style={{ left: `${item.position.x}%`, top: `${item.position.y}%`, width: `${item.size.width}%`, height: `${item.size.height}%` }}><WidgetShell item={item}><OverlayContent item={item} state={state} alertVisible={alertVisible} liveEvents={liveEvents} /></WidgetShell></div>)}
+    <GameStatusEffect state={state} />{Object.values(state.items).filter(item => item.enabled && isOverlayItemAvailable(item.id, state.themeId) && (item.id !== 'alert' || alertVisible)).map(item => <div key={item.id} className={`runtime-item overlay-item ${item.size.width / item.size.height > 1.7 ? 'layout-wide' : item.size.width / item.size.height < .75 ? 'layout-tall' : ''}`} style={{ left: `${item.position.x}%`, top: `${item.position.y}%`, width: `${item.size.width}%`, height: `${item.size.height}%` }}><WidgetShell item={item}><OverlayContent item={item} state={state} alertVisible={alertVisible} liveEvents={liveEvents} /></WidgetShell></div>)}<SystemBranding />
   </main>
 }
