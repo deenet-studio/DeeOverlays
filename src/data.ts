@@ -35,6 +35,7 @@ export const createDefaultState = (): EditorState => ({
   selectedId: 'camera', resolution: resolutions[0], customResolution: false, showSafeZone: false, background: 'game',
   primaryColor: '#00EAFF', secondaryColor: '#8B5CFF', interfaceScale: 'normal', chatMessages: 5, chatTime: true,
   clockTime: true, clockDate: true, cameraRadius: 18, cameraBorder: 2, cameraGlow: 45,
+  themeId: 'universal', gameEffects: { enabled: false, previewState: 'normal', warningThreshold: 50, criticalThreshold: 10, warningOpacity: 12, criticalOpacity: 24, pulse: true, pulseStrength: 35 },
   dataSources: defaultSources,
 })
 
@@ -45,5 +46,5 @@ export function hydrateEditorState(saved: unknown): EditorState {
   const stored = saved as Partial<EditorState>
   const storedItems = (stored.items ?? {}) as Partial<Record<OverlayId, Partial<OverlayItem>>>
   const items = Object.fromEntries(Object.entries(defaults.items).map(([id, item]) => [id, { ...item, ...storedItems[id as OverlayId] }])) as EditorState['items']
-  return { ...defaults, ...stored, items, dataSources: { ...defaults.dataSources, ...stored.dataSources } }
+  return { ...defaults, ...stored, items, gameEffects: { ...defaults.gameEffects, ...stored.gameEffects }, dataSources: { ...defaults.dataSources, ...stored.dataSources } }
 }

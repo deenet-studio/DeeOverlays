@@ -39,6 +39,20 @@ export type OverlayItem = {
 
 export type Resolution = { label: string; width: number; height: number }
 export type InterfaceScale = 'compact' | 'normal' | 'large'
+export type OverlayThemeId = 'universal' | 'cs2-competitive' | 'cs2-neon' | 'dota-ancient' | 'dota-arcane' | 'tarkov-tactical' | 'minecraft-pixel' | 'pubg-field' | 'fortnite-vivid' | 'gta-night'
+export type GameVisualState = 'normal' | 'warning' | 'critical'
+
+// Правила состояния сохраняются уже сейчас, а реальные игровые данные подключатся отдельным этапом.
+export type GameVisualEffects = {
+  enabled: boolean
+  previewState: GameVisualState
+  warningThreshold: number
+  criticalThreshold: number
+  warningOpacity: number
+  criticalOpacity: number
+  pulse: boolean
+  pulseStrength: number
+}
 
 export type EditorState = {
   items: Record<OverlayId, OverlayItem>
@@ -57,5 +71,7 @@ export type EditorState = {
   cameraRadius: number
   cameraBorder: number
   cameraGlow: number
+  themeId: OverlayThemeId
+  gameEffects: GameVisualEffects
   dataSources: Record<DataSourceId, DataSourceConnection>
 }

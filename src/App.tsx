@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import './App.css'
+import './themes.css'
 import { hydrateEditorState } from './data'
 import { Header } from './components/Header'
 import { Sidebar } from './components/Sidebar'

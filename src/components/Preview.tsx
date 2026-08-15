@@ -26,6 +26,29 @@ export function OverlayContent({ item, state, alertVisible, liveEvents = [] }: {
     case 'branding': return <div className="branding" style={style}><img src="/assets/brand/deenet-studio-logo.svg" alt="" style={{ width: '1.8em', height: '1.8em', marginRight: '.42em', borderRadius: 3 }} />Powered by <b>DeeNet Studio</b></div>
   }
 }
+
+// Оболочка отделена от содержимого: тема может менять силуэт без влияния на данные виджета и его размеры.
+export function WidgetShell({ item, children }: { item: OverlayItem; children: React.ReactNode }) {
+  if (item.id === 'branding') return children
+  return <div className={`widget-shell widget-shell-${item.id}`}>
+    <span className="widget-frame-base" aria-hidden="true" />
+    <span className="widget-frame-top" aria-hidden="true" />
+    <span className="widget-frame-bottom" aria-hidden="true" />
+    <span className="widget-frame-mark" aria-hidden="true" />
+    <div className="widget-shell-content">{children}</div>
+  </div>
+}
+
+// Эффект расположен над игровым фоном, но под карточками: зритель видит состояние, а информация остаётся читаемой.
+export function GameStatusEffect({ state }: { state: EditorState }) {
+  const effects = state.gameEffects
+  if (!effects.enabled || effects.previewState === 'normal') return null
+  const opacity = effects.previewState === 'warning' ? effects.warningOpacity : effects.criticalOpacity
+  const effectOpacity = opacity / 100
+  const pulseStrength = effects.pulseStrength / 100
+  const style = { '--game-effect-opacity': effectOpacity, '--game-pulse-extra': effectOpacity * pulseStrength * .45, '--game-pulse-duration': `${2.3 - pulseStrength * 1.1}s` } as React.CSSProperties
+  return <div aria-hidden="true" className={`game-status-effect state-${effects.previewState} ${effects.pulse ? 'is-pulsing' : ''}`} style={style} />
+}
 function Clock({ style, showTime, showDate }: { style: React.CSSProperties; showTime: boolean; showDate: boolean }) {
   const [now, setNow] = useState(new Date()); useEffect(() => { const timer = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(timer) }, [])
   return <div className="clock" style={style}>{showTime && <b>{now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}</b>}{showDate && <small>{now.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</small>}</div>
@@ -36,6 +59,7 @@ export function Preview({ state, onSelect, onMove, onResize, alertVisible, liveE
   const [guides, setGuides] = useState({ x: false, y: false })
   const [displaySize, setDisplaySize] = useState({ width: 0, height: 0 })
   const ratio = state.resolution.width / state.resolution.height
+  const sceneStyle = { width: displaySize.width, height: displaySize.height, '--theme-primary': state.primaryColor, '--theme-secondary': state.secondaryColor } as React.CSSProperties
 
   useLayoutEffect(() => {
     const stage = stageRef.current
@@ -58,9 +82,9 @@ export function Preview({ state, onSelect, onMove, onResize, alertVisible, liveE
     const nearX = [0, 50 - item.size.width / 2, 100 - item.size.width].find(value => Math.abs(x - value) < snap); const nearY = [0, 50 - item.size.height / 2, 100 - item.size.height].find(value => Math.abs(y - value) < snap)
     if (nearX !== undefined) x = nearX; if (nearY !== undefined) y = nearY; setGuides({ x: nearX !== undefined, y: nearY !== undefined }); onMove(action.id, { x, y }) }
   return <main className="preview-area"><div className="preview-toolbar"><div><p>Рабочая область</p><h2>Предпросмотр трансляции</h2></div><span>{state.resolution.width} × {state.resolution.height} · {state.resolution.width / state.resolution.height > 1.7 ? '16:9' : '4:3'}</span></div>
-    <div className="scene-wrap" ref={stageRef}><div ref={sceneRef} className={`scene background-${state.background} scale-${state.interfaceScale}`} style={{ width: displaySize.width, height: displaySize.height }} onPointerMove={move} onPointerUp={() => { drag.current = null; setGuides({ x: false, y: false }) }}>
-      {state.showSafeZone && <div className="safe-zone"><span>Безопасная игровая область</span></div>}{guides.x && <i className="guide vertical" />}{guides.y && <i className="guide horizontal" />}
+    <div className="scene-wrap" ref={stageRef}><div ref={sceneRef} className={`scene background-${state.background} scale-${state.interfaceScale} theme-${state.themeId}`} style={sceneStyle} onPointerMove={move} onPointerUp={() => { drag.current = null; setGuides({ x: false, y: false }) }}>
+      <GameStatusEffect state={state} />{state.showSafeZone && <div className="safe-zone"><span>Безопасная игровая область</span></div>}{guides.x && <i className="guide vertical" />}{guides.y && <i className="guide horizontal" />}
       {Object.values(state.items).filter(item => item.enabled).map(item => <div key={item.id} className={`overlay-item ${state.selectedId === item.id ? 'active' : ''} ${item.size.width / item.size.height > 1.7 ? 'layout-wide' : item.size.width / item.size.height < .75 ? 'layout-tall' : ''} widget-${item.id}`} style={{ left: `${item.position.x}%`, top: `${item.position.y}%`, width: `${item.size.width}%`, height: `${item.size.height}%` }} onPointerDown={event => start(event, item)} onClick={() => onSelect(item.id)}>
-        <OverlayContent item={item} state={state} alertVisible={alertVisible} liveEvents={liveEvents} />{item.id !== 'branding' && <button className="resize-handle" type="button" aria-label="Изменить размер" onPointerDown={event => start(event, item, true)} />}
+        <WidgetShell item={item}><OverlayContent item={item} state={state} alertVisible={alertVisible} liveEvents={liveEvents} /></WidgetShell>{item.id !== 'branding' && <button className="resize-handle" type="button" aria-label="Изменить размер" onPointerDown={event => start(event, item, true)} />}
       </div>)}</div></div></main>
 }
